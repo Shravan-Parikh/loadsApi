@@ -1,6 +1,6 @@
 package com.TruckBooking.routeData.Exception;
 
-import com.TruckBooking.TruckBooking.Exception.BusinessException;
+import com.TruckBooking.LoadsApi.Exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.core.Ordered;
@@ -221,7 +221,7 @@ public class RouteDataExceptionAdvice extends ResponseEntityExceptionHandler {
 		return buildResponseEntity(routeDataErrorResponse);
 	}
 
-	@ExceptionHandler(com.TruckBooking.TruckBooking.Exception.BusinessException.class)
+	@ExceptionHandler(com.TruckBooking.LoadsApi.Exception.BusinessException.class)
 	protected ResponseEntity<Object> handleBusinessException(BusinessException ex) {
 		log.error("handleBusiness Exception is started");
 		RouteDataErrorResponse routeDataErrorResponse = new RouteDataErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY);

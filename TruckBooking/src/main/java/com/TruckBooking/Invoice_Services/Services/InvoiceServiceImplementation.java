@@ -5,7 +5,7 @@ import com.TruckBooking.Invoice_Services.Entity.Invoice;
 import com.TruckBooking.Invoice_Services.Model.InvoiceRequest;
 import com.TruckBooking.Invoice_Services.Response.CreateInvoiceResponse;
 import com.TruckBooking.Invoice_Services.Response.UpdateInvoiceResponse;
-import com.TruckBooking.TruckBooking.Exception.EntityNotFoundException;
+import com.TruckBooking.LoadsApi.Exception.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -103,8 +104,10 @@ public class InvoiceServiceImplementation implements InvoiceService {
             response.setDueDate(temp);
         }
 
+   //saving the value in database
+         invoiceDao.save(invoice);
 
-        invoiceDao.save(invoice);
+
         return response;
 
     }
@@ -131,6 +134,7 @@ public class InvoiceServiceImplementation implements InvoiceService {
         response.setBookingId(invoiceAns.getBookingId());
 
         response.setDueDate(invoiceAns.getDueDate());
+        //returning the response
         return response;
 
 
@@ -139,22 +143,24 @@ public class InvoiceServiceImplementation implements InvoiceService {
 
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     @Override
-    public List<Invoice> getInvoice(String transporterId, String shipperId) {
+    public List<Invoice> getInvoice(String transporterId, String shipperId, Timestamp fromTimestamp, Timestamp toTimestamp) {
 
         log.info("getInvoice services with params started");
         List<Invoice> listans = null;
+        //getting the value for a transporterdId
         if(transporterId!=null) {
-            listans = invoiceDao.findBytransporterId(transporterId);
+            listans = invoiceDao.findByTransporterIdAndInvoiceTimestampBetween(transporterId ,fromTimestamp,  toTimestamp);
             return listans;
         }
+        //getting the value for a shipperId
         if(shipperId!=null){
-           listans = invoiceDao.findByshipperId(shipperId);
+           listans = invoiceDao. findByShipperIdAndInvoiceTimestampBetween(shipperId,fromTimestamp,toTimestamp);
             return listans;
         }
         log.info("getInvoice service response is returned");
         return  listans ;
     }
-    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     @Override
 
     //This request updates the data in the database according to the invoiceID provided in the url
@@ -212,7 +218,7 @@ public class InvoiceServiceImplementation implements InvoiceService {
 
         response.setInvoiceId(invoiceId);
 
-
+       //getting the non updated value from database and setting them in response
         Invoice i = invoiceDao.save(invoice);
         response.setTransporterId(i.getTransporterId());
         response.setBookingId(i.getBookingId());
@@ -233,6 +239,7 @@ public class InvoiceServiceImplementation implements InvoiceService {
     @Override
     public void deleteInvoice(String invoiceId){
         log.info("deleteInvoice service is started");
+        //getting the required invoiceId
         Optional<Invoice> L = invoiceDao.findByInvoiceId(invoiceId);
         if (L.isEmpty())
             throw new EntityNotFoundException(Invoice.class, "id", invoiceId.toString());

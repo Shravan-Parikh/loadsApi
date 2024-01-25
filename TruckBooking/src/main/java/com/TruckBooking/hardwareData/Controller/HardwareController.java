@@ -1,6 +1,5 @@
 package com.TruckBooking.hardwareData.Controller;
 
-import com.TruckBooking.TruckBooking.Model.LoadRequest;
 import com.TruckBooking.hardwareData.Model.HardwareDataRequest;
 import com.TruckBooking.hardwareData.Service.HardwareDataServiceImpl;
 import lombok.extern.slf4j.Slf4j;

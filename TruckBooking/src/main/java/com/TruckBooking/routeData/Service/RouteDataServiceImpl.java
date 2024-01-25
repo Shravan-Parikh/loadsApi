@@ -1,7 +1,6 @@
 package com.TruckBooking.routeData.Service;
-import com.TruckBooking.TruckBooking.Entities.Load;
-import com.TruckBooking.TruckBooking.Exception.BusinessException;
-import com.TruckBooking.TruckBooking.Exception.EntityNotFoundException;
+import com.TruckBooking.LoadsApi.Exception.BusinessException;
+import com.TruckBooking.LoadsApi.Exception.EntityNotFoundException;
 import com.TruckBooking.routeData.Dao.RouteDataDao;
 import com.TruckBooking.routeData.Entities.Route;
 import com.TruckBooking.routeData.Model.RouteDataRequest;

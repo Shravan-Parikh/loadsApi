@@ -1,13 +1,12 @@
 package com.TruckBooking.hardwareData.Service;
 
-import com.TruckBooking.TruckBooking.Exception.BusinessException;
-import com.TruckBooking.TruckBooking.Exception.EntityNotFoundException;
+import com.TruckBooking.LoadsApi.Exception.BusinessException;
+import com.TruckBooking.LoadsApi.Exception.EntityNotFoundException;
 import com.TruckBooking.hardwareData.Dao.HardwareDataDao;
 import com.TruckBooking.hardwareData.Entities.Hardware;
 import com.TruckBooking.hardwareData.Model.HardwareDataRequest;
 import com.TruckBooking.hardwareData.Response.CreateHardwareDataResponse;
 import com.TruckBooking.hardwareData.Response.UpdateHardwareDataResponse;
-import com.TruckBooking.installerTask.Entities.InstallerTask;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -17,31 +17,21 @@ import lombok.Data;
 public class Rates {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
     @NotBlank(message = "Loading Point Cannot Be Empty")
-    @Column(name = "loadingPointCity")
     private String loadingPointCity;
 
     @NotBlank(message = "UnLoading Point Cannot Be Empty")
-    @Column(name = "unloadingPointCity")
     private String unloadingPointCity;
 
     @NotNull(message = "Weight Cannot Be Empty")
-    @Column(name = "weight")
     private String weight;
-
-    @Column(name = "rate")
-    private Integer rate;
-
-    @Column(name = "TransporterId")
-    private String TransporterId;
-
-    @Column(name = "TransporterName")
-    private String TransporterName;
+    private Integer rate;               //optional
+    private String transporterId;       //optional
+    private String shipperId;
+    private String transporterName;     //optional
 
     @NotBlank(message = "Transporter Email Cannot Be Empty")
-    @Column(name="TransporterEmail")
-    private String TransporterEmail;
+    private String transporterEmail;
 }

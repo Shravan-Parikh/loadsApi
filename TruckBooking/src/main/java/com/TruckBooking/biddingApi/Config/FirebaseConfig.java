@@ -1,4 +1,4 @@
-//package com.TruckBooking.biddingApi.Config;
+//package com.LoadsApi.biddingApi.Config;
 //
 //import java.io.IOException;
 //import java.io.InputStream;

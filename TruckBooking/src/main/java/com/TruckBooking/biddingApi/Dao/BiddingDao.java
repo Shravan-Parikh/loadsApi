@@ -19,6 +19,7 @@ public interface BiddingDao extends JpaRepository<BiddingData, String> {
 
 	public List<BiddingData> findByLoadId(String loadId, Pageable p);
 
+
 	public List<BiddingData> findByTransporterId(String transporterId, Pageable p);
 
 	public List<BiddingData> findByLoadIdAndTransporterId(String loadId, String transporterId, Pageable p);

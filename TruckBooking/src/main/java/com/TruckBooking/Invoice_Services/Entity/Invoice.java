@@ -1,10 +1,11 @@
 package com.TruckBooking.Invoice_Services.Entity;
 
-import com.TruckBooking.TruckBooking.Entities.Load;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 @Table(name = "InvoiceServices")
@@ -21,6 +22,8 @@ public class Invoice {
     @ElementCollection(fetch = FetchType.EAGER)
     @Column(name="bookingId")
     private List<String>bookingId=new ArrayList<>();
+    @CreationTimestamp
+    public Timestamp invoiceTimestamp;
 
 
 

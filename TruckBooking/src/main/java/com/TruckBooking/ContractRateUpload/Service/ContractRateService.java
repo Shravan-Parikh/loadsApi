@@ -5,11 +5,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import java.util.Iterator;
-
 import com.TruckBooking.ContractRateUpload.EmailSender.SendEmail;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -22,10 +19,10 @@ import com.TruckBooking.ContractRateUpload.Dao.ContractRateRepo;
 import com.TruckBooking.ContractRateUpload.Dao.IndentDao;
 import com.TruckBooking.ContractRateUpload.Entity.Indent;
 import com.TruckBooking.ContractRateUpload.Entity.Rates;
-import com.TruckBooking.TruckBooking.Dao.LoadDao;
-import com.TruckBooking.TruckBooking.Dao.TransporterEmailDao;
-import com.TruckBooking.TruckBooking.Entities.Load;
-import com.TruckBooking.TruckBooking.Entities.Load.Status;
+import com.TruckBooking.LoadsApi.Dao.LoadDao;
+import com.TruckBooking.LoadsApi.Dao.TransporterEmailDao;
+import com.TruckBooking.LoadsApi.Entities.Load;
+import com.TruckBooking.LoadsApi.Entities.Load.Status;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,10 +54,10 @@ public class ContractRateService {
     }
 
     // this function helps us to save excel file.
-    public boolean save(MultipartFile file) {
+    public boolean saveRates(MultipartFile file, String shipperId) {
 
         try {
-            List<Rates> products = convertExcelToListOfRates(file.getInputStream());
+            List<Rates> products = extractRateListFromExcel(file.getInputStream(), shipperId);
             contractRateRepo.saveAll(products);
             log.info("Saved");
             return true;
@@ -70,85 +67,91 @@ public class ContractRateService {
         }
     }
 
-    // convert excel sheet data to a list of rates
-    public List<Rates> convertExcelToListOfRates(InputStream is) {
-        List<Rates> list = new ArrayList<>();
+    // convert Excel sheet data to a list of rates
+    public List<Rates> extractRateListFromExcel(InputStream is, String shipperId){
 
-        try (XSSFWorkbook workbook = new XSSFWorkbook(is)) {
+        List<Rates> rateList = new ArrayList<>();
+
+        try (XSSFWorkbook workbook=new XSSFWorkbook(is)){
+
             XSSFSheet sheet = workbook.getSheet("Sheet1");
+            Rates rates;
+            int rowNumber=0,cId;
+            try{
+                for (Row row : sheet) {
 
-            int rowNumber = 0;
-            Iterator<Row> rowIterator = sheet.iterator();
-
-            while (rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                int flag = 0;
-                if (rowNumber == 0) {
+                    // Since first row contains The name of the entries to be performed therefore we've to skip
+                    if (rowNumber == 0) {
+                        rowNumber++;
+                        continue;
+                    }
                     rowNumber++;
-                    continue;
-                }
-                rowNumber++;
+                    rates = new Rates();
 
-                Iterator<Cell> cellIterator = row.iterator();
-                int cid = 0;
+                // To protect any error last column should always be a non-empty Column (that doesn't accept null values
+                // 7 is since we have only these many fields to accept
+                    for (cId=0; cId<7;cId++) {
+                // This line protects the null/ blank cells from being skipped.
+                        Cell cell =row.getCell(cId, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                        if (cell.getCellType().toString().equals("BLANK")) {
 
-                Rates p = new Rates();
-                try {
-                    while (cellIterator.hasNext()) {
-                        Cell cell = cellIterator.next();
-                        CellType type = cell.getCellType();
-
-                        // code 3 is for the blank cells so if a  cell doesn't contains any data then the row won't get saved|
-                        if (type.getCode() == 3){
-                            log.error("Row "+rowNumber+" Contains some empty entries");
+                            // These cId's represent the fields that can accept null values
+                            // i.e. Rate, TransporterId and TransporterName
+                            if (cId == 2 || cId == 3 || cId == 5) {
+                                continue;
+                            }
+                            log.error("Row " + rowNumber + " Contains blank entries " + cId);
                             break;
                         }
-
-                        // entry at the 0th index is to be shown always as Numeric not empty if it is empty.
-
-//                        else if (cid==0 && type.name().equals("NUMERIC")) {
-//                            log.error("Row "+rowNumber+" Contains some empty entries");
-//                            break;
-//                        }
-
-                        switch (cid) {
+                        switch (cId) {
                             case 0:
-                                p.setUnloadingPointCity(cell.getStringCellValue());
+                                rates.setUnloadingPointCity(cell.toString());
                                 break;
                             case 1:
-                                p.setWeight(String.valueOf((int) cell.getNumericCellValue()));
+                                rates.setWeight(String.valueOf((int) cell.getNumericCellValue()));
                                 break;
                             case 2:
-                                p.setRate((int) cell.getNumericCellValue());
+                                rates.setRate((int) cell.getNumericCellValue());
                                 break;
                             case 3:
-                                p.setTransporterId(cell.getStringCellValue());
+                                rates.setTransporterId(cell.toString());
                                 break;
                             case 4:
-                                p.setTransporterEmail(cell.getStringCellValue());
+                                rates.setTransporterEmail(cell.toString());
                                 break;
                             case 5:
-                                p.setTransporterName(cell.getStringCellValue());
+                                rates.setTransporterName(cell.toString());
                                 break;
                             case 6:
-                                p.setLoadingPointCity(cell.getStringCellValue());
+                                rates.setLoadingPointCity(cell.toString());
                                 break;
                             default:
                                 break;
                         }
-                        cid++;
                     }
-                    if (cid>=7){
-                        list.add(p);
+                    // >=7 means that no non-empty cells contains null values.
+                    //since we only have to add those rows that satisfy the conditions.
+                    if (cId >= 7) {
+                        rates.setShipperId(shipperId);
+                        rateList.add(rates);
                     }
-                } catch (Exception e){
-                    log.error(String.valueOf(e));
                 }
             }
-        } catch (Exception e) {
-            log.error(String.valueOf(e));
+            catch (Exception e){
+                log.error(e.getMessage());
+            }
         }
-        return list;
+        catch(Exception e){
+            log.error("No Excel Sheet Detected");
+        }
+        return rateList;
+    }
+
+    public Indent saveIndent(Indent indent ){
+        indent.setPosition(0);
+        indent.setStatus(Status.NOT_ASSIGNED);
+        indentDao.save(indent);
+        return indent;
     }
 
     // Find the ranks for particular LoadId and arrange them in ascending order in Indent Table
@@ -178,17 +181,15 @@ public class ContractRateService {
                 indentDao.save(indentTable);
             }
         }
-
+        triggerMail();
     }
 
-    // Scheduler for sending mails
-    @Scheduled(fixedRate = 120000)
+    // Function for sending mails
     public void triggerMail()  {
         List<Indent> responses = this.indentDao.findAll();
         for (Indent it : responses) {
             if ((it.getStatus()) == Status.NOT_ASSIGNED) {
                 List<String> list = it.getTransporterEmail();
-                System.out.println("inside loop"+list.size());
                 Load load = loadDao.findByLoadId(it.getLoadId()).get();
 
                 // subject format "indent for 25MT from ambala to delhi"
@@ -213,10 +214,9 @@ public class ContractRateService {
                         "Weight : " + load.getWeight() + "\n" +
                         "Product Type : " + load.getProductType();
 
-//                address = new SendEmail(it.getTransporterEmail().get(it.getPosition()), body, subject);
+//              address = new SendEmail(it.getTransporterEmail().get(it.getPosition()), body, subject);
                 email.send(it.getTransporterEmail().get(it.getPosition()), subject, body);
-                boolean x = email.isSend;
-                if (x){
+                if (email.isSend){
                     it.setStatus(Status.INDENT_ASSIGNED);
                 }
                 else{
@@ -250,6 +250,7 @@ public class ContractRateService {
                 indentDao.save(indent);
             }
         }
+        triggerMail();
     }
 
     // Scheduler to automatically assign the load to next indent after a
@@ -277,5 +278,10 @@ public class ContractRateService {
                 indentDao.save(indent);
             }
         }
+        triggerMail();
+    }
+
+    public List<Rates> getRates(String shipperId){
+        return contractRateRepo.findByShipperId(shipperId);
     }
 }

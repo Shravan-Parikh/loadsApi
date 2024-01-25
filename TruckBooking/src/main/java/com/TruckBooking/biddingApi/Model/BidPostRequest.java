@@ -13,7 +13,8 @@ public @Data class BidPostRequest {
 
 	private String transporterId;
 	private String loadId;
-	private Long currentBid;
+	private Integer transporterBid;
+	private Integer shipperBid;
 
 	private Unit unitValue;
 	private List<String> truckId;

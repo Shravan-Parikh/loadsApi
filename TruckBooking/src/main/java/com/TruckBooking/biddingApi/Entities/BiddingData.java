@@ -34,10 +34,10 @@ public @Data class BiddingData {
 	@NotBlank(message = "Load Id can not be null")
 	private String loadId;
 
-	@NotNull(message = "Current Bid can not be null")
-	private Long currentBid;
+	@NotNull(message = "TransporterBid can not be null")
+	private Integer transporterBid;
 
-	private Long previousBid;
+	private Integer shipperBid;
 
 	@Enumerated(EnumType.STRING)
 	@NotNull(message = "Unit can not be null")
@@ -56,7 +56,15 @@ public @Data class BiddingData {
 
 	private String biddingDate;
 
+
 	@CreationTimestamp
 	public Timestamp timestamp;
+
+	@Column(name = "transporterId")
+	@ElementCollection(targetClass = String.class)
+	private List<String> rank;
+
+
+
 
 }

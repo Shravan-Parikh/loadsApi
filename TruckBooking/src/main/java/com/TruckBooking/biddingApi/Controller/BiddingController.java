@@ -36,9 +36,6 @@ public class BiddingController {
 			@RequestParam(value = "transporterId", required = false) String transporterId)
 					throws EntityNotFoundException {
 		log.info("Get with Params Controller Started");
-
-//		jwtUtil.validateToken(token);
-		//		System.out.println("token validation successful");
 		return new ResponseEntity<>(biddingService.getBid(pageNo, loadId, transporterId,token), HttpStatus.OK);
 	}
 

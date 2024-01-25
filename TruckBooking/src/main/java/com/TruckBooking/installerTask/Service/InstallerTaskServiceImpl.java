@@ -1,7 +1,7 @@
 package com.TruckBooking.installerTask.Service;
 
-import com.TruckBooking.TruckBooking.Exception.BusinessException;
-import com.TruckBooking.TruckBooking.Exception.EntityNotFoundException;
+import com.TruckBooking.LoadsApi.Exception.BusinessException;
+import com.TruckBooking.LoadsApi.Exception.EntityNotFoundException;
 import com.TruckBooking.installerTask.Dao.InstallerTaskDao;
 import com.TruckBooking.installerTask.Entities.InstallerTask;
 import com.TruckBooking.installerTask.Model.InstallerTaskRequest;

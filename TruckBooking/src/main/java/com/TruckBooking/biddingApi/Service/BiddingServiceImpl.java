@@ -1,9 +1,7 @@
 package com.TruckBooking.biddingApi.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -46,7 +44,8 @@ public class BiddingServiceImpl implements BiddingService {
 
 		data.setTransporterId(request.getTransporterId());
 		data.setLoadId(request.getLoadId());
-		data.setCurrentBid(request.getCurrentBid());
+		data.setTransporterBid(request.getTransporterBid());
+		data.setShipperBid(request.getShipperBid());
 
 		if ("PER_TON".equals(String.valueOf(request.getUnitValue()))) {
 			data.setUnitValue(BiddingData.Unit.PER_TON);
@@ -80,7 +79,7 @@ public class BiddingServiceImpl implements BiddingService {
 		response.setStatus(Constants.success);
 		response.setBidId(id);
 		response.setLoadId(data.getLoadId());
-		response.setCurrentBid(data.getCurrentBid());
+		response.setTransporterBid(data.getTransporterBid());
 		response.setTransporterId(data.getTransporterId());
 		response.setShipperApproval(data.getShipperApproval());
 		response.setTransporterApproval(data.getTransporterApproval());
@@ -99,23 +98,22 @@ public class BiddingServiceImpl implements BiddingService {
 		}
 	}
 
+
 	@Override
 	public List<BiddingData> getBid(Integer pageNo, String loadId, String transporterId,String token) {
 		// TODO Auto-generated method stub
-
-		//		List<BiddingData> list = null;
 		if (pageNo == null)
 			pageNo = 0;
 
+
+		List<BiddingData> bids;
 		if (loadId != null && transporterId == null) {
 
 
 			try {
 				Pageable page = PageRequest.of(pageNo, Constants.pageSize, Sort.Direction.DESC, "timestamp");
-				//				list = biddingDao.findByLoadId(loadId, page);
-				//				Collections.reverse(list);
 				log.info("Bidding Data with params returned");
-				return biddingDao.findByLoadId(loadId, page);
+				bids= biddingDao.findByLoadId(loadId, page);
 			} catch (Exception ex) {
 				log.error("Bidding Data with params not returned -----" + String.valueOf(ex));
 				throw ex;
@@ -125,9 +123,6 @@ public class BiddingServiceImpl implements BiddingService {
 
 			try {
 				Pageable page = PageRequest.of(pageNo, Constants.pageSize, Sort.Direction.DESC, "timestamp");
-				//				list = biddingDao.findByTransporterId(transporterId, page);
-				//				Collections.reverse(list);
-				//				log.info("Bidding Data with params returned");
 				return biddingDao.findByTransporterId(transporterId, page);
 			} catch (Exception ex) {
 				log.error("Bidding Data with params not returned -----" + String.valueOf(ex));
@@ -138,10 +133,8 @@ public class BiddingServiceImpl implements BiddingService {
 
 			try {
 				Pageable page = PageRequest.of(pageNo, Constants.pageSize, Sort.Direction.DESC, "timestamp");
-				//				list = biddingDao.findByLoadIdAndTransporterId(loadId, transporterId, page);
-				//				Collections.reverse(list);
 				log.info("Bidding Data with params returned");
-				return biddingDao.findByLoadIdAndTransporterId(loadId, transporterId, page);
+				bids= biddingDao.findByLoadIdAndTransporterId(loadId, transporterId, page);
 			} catch (Exception ex) {
 				log.error("Bidding Data with params not returned -----" + String.valueOf(ex));
 				throw ex;
@@ -151,9 +144,8 @@ public class BiddingServiceImpl implements BiddingService {
 
 			try {
 				Pageable page = PageRequest.of(pageNo, Constants.pageSize, Sort.Direction.DESC, "timestamp");
-				//				list = biddingDao.getAll(p);
-				//				Collections.reverse(list);
 				log.info("Bidding Data get all returned");
+
 				return biddingDao.getAll(page);
 			} catch (Exception ex) {
 				log.error("Bidding Data get all not returned -----" + String.valueOf(ex));
@@ -161,7 +153,49 @@ public class BiddingServiceImpl implements BiddingService {
 			}
 
 		}
+		calculateRank(bids);
+
+		return bids;
+
 	}
+	private void calculateRank(List<BiddingData> bids) {
+		//grouping by loadId
+		Map<String, List<BiddingData>> bidsByLoadId = bids.stream()
+				.collect(Collectors.groupingBy(BiddingData::getLoadId));
+
+		// Iterate through each loadId
+		bidsByLoadId.forEach((loadId, loadBids) -> {
+			// Sorting bids based on transporterBid
+			loadBids.sort(Comparator.comparingInt(BiddingData::getTransporterBid));
+
+			//Get transporterId respectively
+			List<String> rank = loadBids.stream()
+					.map(BiddingData::getTransporterId)
+					.collect(Collectors.toList());
+
+			loadBids.forEach(bid -> bid.setRank(rank));
+		});
+	}
+
+
+
+	private void Rank(BiddingData bid) {
+
+		//grouping by loadId
+		String loadId = bid.getLoadId();
+		List<BiddingData> allBidsForLoadId = biddingDao.findByLoadId(loadId);
+
+		// Sorting bids based on transporterBid
+		allBidsForLoadId.sort(Comparator.comparingInt(BiddingData::getTransporterBid));
+
+		//Get transporterId respectively
+		List<String> rank = allBidsForLoadId.stream()
+				.map(BiddingData::getTransporterId)
+				.collect(Collectors.toList());
+
+		bid.setRank(rank);
+	}
+
 
 	@Override
 	public BidDeleteResponse deleteBid(String id,String token) {
@@ -199,6 +233,7 @@ public class BiddingServiceImpl implements BiddingService {
 	@Override
 	public BiddingData getBidById(String id,String token) {
 		Optional<BiddingData> temp = (biddingDao.findById(id));
+		BiddingData bid = temp.get();
 
 		if (temp.isEmpty()) {
 			EntityNotFoundException ex = new EntityNotFoundException(BiddingData.class, "bidId", id.toString());
@@ -207,6 +242,7 @@ public class BiddingServiceImpl implements BiddingService {
 		}
 
 		try {
+			Rank(bid);
 			log.info("Bidding Data returned");
 			return temp.orElse(null);
 		} catch (Exception ex) {
@@ -215,6 +251,9 @@ public class BiddingServiceImpl implements BiddingService {
 
 		}
 	}
+
+
+
 
 	@Override
 	public BidPutResponse updateBid(String id, BidPutRequest bidPutRequest,String token) {
@@ -231,7 +270,7 @@ public class BiddingServiceImpl implements BiddingService {
 
 		if (String.valueOf(bidPutRequest.getTransporterApproval()).equals("true")
 				&& String.valueOf(bidPutRequest.getShipperApproval()).equals("null")) {
-			if (bidPutRequest.getCurrentBid() != null) {
+			if (bidPutRequest.getTransporterBid() != null) {
 
 				if (bidPutRequest.getUnitValue() == null) {
 					log.error(Constants.unitValueisNull);
@@ -248,8 +287,9 @@ public class BiddingServiceImpl implements BiddingService {
 						throw new BusinessException(Constants.UnknownUnit);
 
 					}
-					data.setPreviousBid(data.getCurrentBid());
-					data.setCurrentBid(bidPutRequest.getCurrentBid());
+
+					data.setTransporterBid(bidPutRequest.getTransporterBid());
+					data.setShipperBid(bidPutRequest.getShipperBid());
 					if (bidPutRequest.getBiddingDate() != null) {
 						data.setBiddingDate(bidPutRequest.getBiddingDate());
 					}
@@ -272,8 +312,7 @@ public class BiddingServiceImpl implements BiddingService {
 					response.setStatus(Constants.uSuccess);
 					response.setBidId(id);
 					response.setLoadId(data.getLoadId());
-					response.setCurrentBid(data.getCurrentBid());
-					response.setPreviousBid(data.getPreviousBid());
+					response.setTransporterBid(data.getTransporterBid());
 					response.setTransporterId(data.getTransporterId());
 					response.setShipperApproval(data.getShipperApproval());
 					response.setTransporterApproval(data.getTransporterApproval());
@@ -292,7 +331,7 @@ public class BiddingServiceImpl implements BiddingService {
 				}
 
 				// accept by transporter
-			} else if (bidPutRequest.getCurrentBid() == null && data.getShipperApproval() == true) {
+			} else if (bidPutRequest.getTransporterBid() == null && data.getShipperApproval() == true) {
 
 				data.setTransporterApproval(true);
 
@@ -301,8 +340,8 @@ public class BiddingServiceImpl implements BiddingService {
 				response.setStatus(Constants.uSuccess);
 				response.setBidId(id);
 				response.setLoadId(data.getLoadId());
-				response.setCurrentBid(data.getCurrentBid());
-				response.setPreviousBid(data.getPreviousBid());
+				response.setTransporterBid(data.getTransporterBid());
+				response.setShipperBid(data.getShipperBid());
 				response.setTransporterId(data.getTransporterId());
 				response.setShipperApproval(data.getShipperApproval());
 				response.setTransporterApproval(data.getTransporterApproval());
@@ -325,7 +364,7 @@ public class BiddingServiceImpl implements BiddingService {
 		else if (String.valueOf(bidPutRequest.getShipperApproval()).equals("true")
 				&& String.valueOf(bidPutRequest.getTransporterApproval()).equals("null")) {
 
-			if (bidPutRequest.getCurrentBid() != null) {
+			if (bidPutRequest.getTransporterBid() != null) {
 				if (bidPutRequest.getUnitValue() == null) {
 					log.error(Constants.unitValueisNull);
 					throw new BusinessException(Constants.unitValueisNull);
@@ -340,8 +379,8 @@ public class BiddingServiceImpl implements BiddingService {
 						throw new BusinessException(Constants.UnknownUnit);
 
 					}
-					data.setPreviousBid(data.getCurrentBid());
-					data.setCurrentBid(bidPutRequest.getCurrentBid());
+					data.setTransporterBid(bidPutRequest.getTransporterBid());
+					data.setShipperBid(bidPutRequest.getShipperBid());
 					if (bidPutRequest.getBiddingDate() != null) {
 						data.setBiddingDate(bidPutRequest.getBiddingDate());
 					}
@@ -365,8 +404,8 @@ public class BiddingServiceImpl implements BiddingService {
 					response.setStatus(Constants.uSuccess);
 					response.setBidId(id);
 					response.setLoadId(data.getLoadId());
-					response.setCurrentBid(data.getCurrentBid());
-					response.setPreviousBid(data.getPreviousBid());
+					response.setTransporterBid(data.getTransporterBid());
+					response.setShipperBid(data.getShipperBid());
 					response.setTransporterId(data.getTransporterId());
 					response.setShipperApproval(data.getShipperApproval());
 					response.setTransporterApproval(data.getTransporterApproval());
@@ -384,7 +423,7 @@ public class BiddingServiceImpl implements BiddingService {
 					}
 				}
 				// accept by shipper
-			} else if (bidPutRequest.getCurrentBid() == null && data.getTransporterApproval() == true) {
+			} else if (bidPutRequest.getTransporterBid() == null && data.getTransporterApproval() == true) {
 
 				data.setShipperApproval(true);
 
@@ -399,8 +438,8 @@ public class BiddingServiceImpl implements BiddingService {
 				response.setStatus(Constants.uSuccess);
 				response.setBidId(id);
 				response.setLoadId(data.getLoadId());
-				response.setCurrentBid(data.getCurrentBid());
-				response.setPreviousBid(data.getPreviousBid());
+				response.setTransporterBid(data.getTransporterBid());
+				response.setShipperBid(data.getShipperBid());
 				response.setTransporterId(data.getTransporterId());
 				response.setShipperApproval(data.getShipperApproval());
 				response.setTransporterApproval(data.getTransporterApproval());
@@ -447,8 +486,8 @@ public class BiddingServiceImpl implements BiddingService {
 			response.setStatus(Constants.uSuccess);
 			response.setBidId(id);
 			response.setLoadId(data.getLoadId());
-			response.setCurrentBid(data.getCurrentBid());
-			response.setPreviousBid(data.getPreviousBid());
+			response.setTransporterBid(data.getTransporterBid());
+			response.setShipperBid(data.getShipperBid());
 			response.setTransporterId(data.getTransporterId());
 			response.setShipperApproval(data.getShipperApproval());
 			response.setTransporterApproval(data.getTransporterApproval());
@@ -482,8 +521,8 @@ public class BiddingServiceImpl implements BiddingService {
 			response.setStatus(Constants.uSuccess);
 			response.setBidId(id);
 			response.setLoadId(data.getLoadId());
-			response.setCurrentBid(data.getCurrentBid());
-			response.setPreviousBid(data.getPreviousBid());
+			response.setTransporterBid(data.getTransporterBid());
+			response.setShipperBid(data.getShipperBid());
 			response.setTransporterId(data.getTransporterId());
 			response.setShipperApproval(data.getShipperApproval());
 			response.setTransporterApproval(data.getTransporterApproval());
@@ -510,4 +549,5 @@ public class BiddingServiceImpl implements BiddingService {
 
 		}
 	}
+
 }

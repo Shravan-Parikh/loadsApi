@@ -1,16 +1,13 @@
 package com.TruckBooking.ContractRateUpload.Entity;
 
-import com.TruckBooking.TruckBooking.Entities.Load;
+import com.TruckBooking.LoadsApi.Entities.Load;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.repository.cdi.Eager;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -19,7 +16,7 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class Indent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +39,6 @@ public class Indent {
     private List<String> transporterEmail = new ArrayList<>();
     // Email List of all the transporters, so we do not have to make connection to database again and again for address of each.
 
-    @NotNull
     @Column(name = "Position")
     private int position;
     //Position is an index for the transporter to whom our system has assigned the load and waiting for the conformation.
