@@ -10,7 +10,9 @@ import com.TruckBooking.ContractRateUpload.Entity.Rates;
 @Repository
 public interface ContractRateRepo extends JpaRepository<Rates,Long> {
 
+    List<Rates> findByShipperId(@PathVariable("shipperId") String shipperId);
     List<Rates> findByLoadingPointCityAndUnloadingPointCityAndWeightOrderByRateAsc(@PathVariable("loadingPointCity") String loadingPoint, @PathVariable("unloadingPointCity") String unLoadingPoint, @PathVariable("weight") String weight);
 
+    Rates findByTransporterId(@PathVariable("transporterId") String transporterId);
     //old ->  List<Rates> findByUnloadingPointAndWeightOrderByRateAsc(@PathVariable("unloadingPoint") String unLoadingPoint,@PathVariable("weight") String weight);
 } 

@@ -22,6 +22,10 @@ public @Data class BookingPostRequest {
 	private String driverPhoneNum;
 	private String deviceId;
 	private Long rate;
+	private String lr;            // optional
+	private String remarks;       // optional
+	private Integer damage;        // optional
+	private String companyName;   // optional
 	private Unit unitValue;
 	private List<String> truckId;
 	private String bookingDate;

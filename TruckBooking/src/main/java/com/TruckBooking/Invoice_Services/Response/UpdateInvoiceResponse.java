@@ -1,12 +1,12 @@
 package com.TruckBooking.Invoice_Services.Response;
 
-import com.TruckBooking.Invoice_Services.Entity.Invoice;
-import com.TruckBooking.TruckBooking.Entities.Load;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.FetchType;
+import java.sql.Timestamp;
 import java.util.List;
 
 @Data
@@ -17,6 +17,8 @@ public class UpdateInvoiceResponse {
     @ElementCollection(fetch = FetchType.EAGER)
     @Column(name="bookingId")
     public List<String>bookingId;
+
+
 
     public String invoiceStatus;
     public String shipperId;

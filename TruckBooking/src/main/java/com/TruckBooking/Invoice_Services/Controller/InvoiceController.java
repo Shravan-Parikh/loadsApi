@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 @CrossOrigin
 @RestController
@@ -40,9 +43,11 @@ public class InvoiceController {
 
     @GetMapping("/invoice")
     public ResponseEntity<List<Invoice>> findinvoiceService(@RequestParam(name="transporterId",required = false)String transporterId,
-          @RequestParam(name="shipperId",required = false)String shipperId){
-        log.info("Get with Params Controller Started");
-        return new ResponseEntity<>(invoiceService.getInvoice(transporterId,shipperId), HttpStatus.OK);
+          @RequestParam(name="shipperId",required = false)String shipperId,
+        @RequestParam(name = "fromTimestamp") Timestamp fromTimestamp,
+        @RequestParam(name = "toTimestamp") Timestamp toTimestamp){
+
+        return new ResponseEntity<>(invoiceService.getInvoice(transporterId,shipperId,fromTimestamp,toTimestamp), HttpStatus.OK);
 
     }
     @PutMapping("/invoice/{invoiceId}")

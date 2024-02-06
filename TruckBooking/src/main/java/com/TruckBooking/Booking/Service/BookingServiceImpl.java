@@ -62,6 +62,10 @@ public class BookingServiceImpl implements BookingService {
 
         bookingData.setPostLoadId(request.getPostLoadId());
 		bookingData.setTruckId(request.getTruckId());
+		bookingData.setLr(request.getLr());
+		bookingData.setRemarks(request.getRemarks());
+		bookingData.setDamage(request.getDamage());
+		bookingData.setCompanyName(request.getCompanyName());
 
 		if (request.getRate() != null) {
 			if (request.getUnitValue() == null) {
@@ -121,6 +125,11 @@ public class BookingServiceImpl implements BookingService {
 		response.setTruckId(bookingData.getTruckId());
 		response.setUnitValue(bookingData.getUnitValue());
 		response.setBookingDate(bookingData.getBookingDate());
+
+		response.setLr(bookingData.getLr());
+		response.setRemarks(bookingData.getRemarks());
+		response.setDamage(bookingData.getDamage());
+		response.setCompanyName(bookingData.getCompanyName());
 
 		try {
 			log.info("Post Service Response returned");
@@ -189,6 +198,22 @@ public class BookingServiceImpl implements BookingService {
 				throw new BusinessException(BookingConstants.uUpdateUnitRateIsNull);
 
 			}
+		}
+
+		if (request.getCompanyName() != null){
+			data.setCompanyName(request.getCompanyName());
+		}
+
+		if (request.getLr() != null){
+			data.setLr(response.getLr());
+		}
+
+		if (request.getRemarks() != null){
+			data.setRemarks(request.getRemarks());
+		}
+
+		if (request.getDamage() != null){
+			data.setDamage(request.getDamage());
 		}
 
 		if (request.getRate() != null) {
@@ -286,6 +311,11 @@ public class BookingServiceImpl implements BookingService {
 		response.setUnitValue(data.getUnitValue());
 		response.setBookingDate(data.getBookingDate());
 		response.setCompletedDate(data.getCompletedDate());
+
+		response.setLr(data.getLr());
+		response.setRemarks(data.getRemarks());
+		response.setDamage(data.getDamage());
+		response.setCompanyName(data.getCompanyName());
 
 		try {
 			log.info("Put Service Response returned");

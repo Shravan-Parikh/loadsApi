@@ -25,5 +25,9 @@ public @Data class BookingPutRequest {
 	private Boolean completed;
 	private String bookingDate;
 	private String completedDate;
+	private String lr;            // optional
+	private String remarks;       // optional
+	private Integer damage;        // optional
+	private String companyName;   // optional
 
 }

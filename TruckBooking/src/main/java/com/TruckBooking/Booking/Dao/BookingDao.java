@@ -1,5 +1,6 @@
 package com.TruckBooking.Booking.Dao;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -38,4 +39,6 @@ public interface BookingDao extends JpaRepository<BookingData, String> {
 	List<BookingData> findByTruckNoAndCancelAndCompleted(String truckNo, Boolean cancel, Boolean completed, Pageable page);
 
 	List<BookingData> findByDeviceIdAndCancelAndCompleted(String deviceId, Boolean cancel, Boolean completed, Pageable page);
+
+	List<BookingData> findByTimestampIsAfter(Timestamp timestamp);
 }
