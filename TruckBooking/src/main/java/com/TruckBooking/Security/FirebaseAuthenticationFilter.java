@@ -17,10 +17,6 @@ import java.io.IOException;
 
 public class FirebaseAuthenticationFilter extends GenericFilterBean {
 
-    // Use a constant for the Firebase app name
-    @Value("${firebase.app.name}")
-    private String FIREBASE_APP_NAME;
-
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
@@ -31,8 +27,14 @@ public class FirebaseAuthenticationFilter extends GenericFilterBean {
 
         if (token != null && token.startsWith("Bearer ")) {
             try {
+                // Get the Firebase app name from the request
+                String firebaseAppName = request.getHeader("Firebase-App-Name");
+                if (firebaseAppName == null) {
+                    firebaseAppName = "default"; // Use a default app name if not specified
+                }
+
                 // Verify and decode Firebase token
-                FirebaseToken firebaseToken = FirebaseAuth.getInstance(FirebaseApp.getInstance(FIREBASE_APP_NAME))
+                FirebaseToken firebaseToken = FirebaseAuth.getInstance(FirebaseApp.getInstance(firebaseAppName))
                         .verifyIdToken(token.substring(7));
 
                 // Create Spring Security Authentication object
@@ -51,3 +53,4 @@ public class FirebaseAuthenticationFilter extends GenericFilterBean {
         chain.doFilter(req, res);
     }
 }
+

@@ -23,8 +23,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.csrf().disable()
 				.authorizeRequests()
 				.antMatchers("/public/**").permitAll() // Allow public APIs
-				.antMatchers("/invoice/**").authenticated() // only Invoice service is authenticated
 				//.anyRequest().authenticated(); // to authenticate all api's uncomment this
+				.antMatchers("/invoice/**").authenticated() // only Invoice service is authenticated
 				.anyRequest().permitAll();
 
 		// Add FirebaseAuthenticationFilter before UsernamePasswordAuthenticationFilter

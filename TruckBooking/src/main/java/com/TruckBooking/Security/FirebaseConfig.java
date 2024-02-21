@@ -14,18 +14,29 @@ import java.io.InputStream;
 @Configuration
 public class FirebaseConfig {
 
-	@Value("${firebase.credentials.file}")
-	private String credentialsFile;
+	@Value("${transporter.firebase.credentials.file}")
+	private String transporterCredentialsFile;
 
-	@Value("${firebase.app.name}")
-	private String appName;
+	@Value("${transporter.firebase.app.name}")
+	private String transporterAppName;
+
+	@Value("${shipper.firebase.credentials.file}")
+	private String shipperCredentialsFile;
+
+	@Value("${shipper.firebase.app.name}")
+	private String shipperAppName;
 
 	public static void main(String[] args) {
 		SpringApplication.run(FirebaseConfig.class, args);
 	}
 
 	@PostConstruct
-	private void initializeFirebaseApp() {
+	private void initializeFirebaseApps() {
+		initializeFirebaseApp(transporterCredentialsFile, transporterAppName);
+		initializeFirebaseApp(shipperCredentialsFile, shipperAppName);
+	}
+
+	private void initializeFirebaseApp(String credentialsFile, String appName) {
 		try (InputStream serviceAccount = FirebaseConfig.class.getClassLoader().getResourceAsStream(credentialsFile)) {
 			assert serviceAccount != null;
 			FirebaseOptions options = FirebaseOptions.builder()
@@ -38,5 +49,6 @@ public class FirebaseConfig {
 		}
 	}
 }
+
 
 
